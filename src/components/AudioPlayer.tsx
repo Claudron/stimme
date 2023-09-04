@@ -78,7 +78,7 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       <HStack spacing={4}>
         <audio
           ref={audioRef}
-          src={`${backendURL}${playlist[currentTrackIndex]?.file}`}
+          src={playlist[currentTrackIndex]?.file}
           onTimeUpdate={() => setCurrentTime(audioRef.current!.currentTime)}
           onLoadedMetadata={() => setDuration(audioRef.current!.duration)}
           onEnded={playpauseTrack}
@@ -88,52 +88,20 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
         <Button onClick={playpauseTrack}>{isPlaying ? "Pause" : "Play"}</Button>
         <Button onClick={playNextTrack}>Next</Button>
       </HStack>
-    <HStack>
-      <Box width="300px">
-        <Text>
-          {Math.floor(currentTime / 60)}:
-          {Math.floor(currentTime % 60)
-            .toString()
-            .padStart(2, "0")}
-        </Text>
-        <Slider
-          value={duration ? (currentTime / duration) * 100 : 0}
-          onChange={(val: number) =>
-            seekTo({
-              target: { value: val.toString() },
-            } as React.ChangeEvent<HTMLInputElement>)
-          }
-        >
-          <SliderTrack>
-            <SliderFilledTrack />
-          </SliderTrack>
-          <SliderThumb />
-        </Slider>
-        <Text>
-          {Math.floor(duration / 60)}:
-          {Math.floor(duration % 60)
-            .toString()
-            .padStart(2, "0")}
-        </Text>
-      </Box>
-
-      <Popover
-        isOpen={isVolumeOpen}
-        onClose={() => setIsVolumeOpen(false)}
-        placement="bottom"
-      >
-        <PopoverTrigger>
-          <IconButton
-            aria-label="Volume"
-            icon={<FiVolume2 />}
-            onClick={() => setIsVolumeOpen(!isVolumeOpen)}
-          />
-        </PopoverTrigger>
-        <PopoverContent>
+      <HStack>
+        <Box width="300px">
+          <Text>
+            {Math.floor(currentTime / 60)}:
+            {Math.floor(currentTime % 60)
+              .toString()
+              .padStart(2, "0")}
+          </Text>
           <Slider
-            defaultValue={100}
-            onChange={(val) =>
-              setVolume({ target: { value: val.toString() } } as any)
+            value={duration ? (currentTime / duration) * 100 : 0}
+            onChange={(val: number) =>
+              seekTo({
+                target: { value: val.toString() },
+              } as React.ChangeEvent<HTMLInputElement>)
             }
           >
             <SliderTrack>
@@ -141,8 +109,40 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
             </SliderTrack>
             <SliderThumb />
           </Slider>
-        </PopoverContent>
-      </Popover>
+          <Text>
+            {Math.floor(duration / 60)}:
+            {Math.floor(duration % 60)
+              .toString()
+              .padStart(2, "0")}
+          </Text>
+        </Box>
+
+        <Popover
+          isOpen={isVolumeOpen}
+          onClose={() => setIsVolumeOpen(false)}
+          placement="bottom"
+        >
+          <PopoverTrigger>
+            <IconButton
+              aria-label="Volume"
+              icon={<FiVolume2 />}
+              onClick={() => setIsVolumeOpen(!isVolumeOpen)}
+            />
+          </PopoverTrigger>
+          <PopoverContent>
+            <Slider
+              defaultValue={100}
+              onChange={(val) =>
+                setVolume({ target: { value: val.toString() } } as any)
+              }
+            >
+              <SliderTrack>
+                <SliderFilledTrack />
+              </SliderTrack>
+              <SliderThumb />
+            </Slider>
+          </PopoverContent>
+        </Popover>
       </HStack>
     </VStack>
   );
