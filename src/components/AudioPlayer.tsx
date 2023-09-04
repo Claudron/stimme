@@ -22,7 +22,6 @@ type AudioPlayerProps = {
 };
 
 const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
-  const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
