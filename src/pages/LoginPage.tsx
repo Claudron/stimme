@@ -89,66 +89,77 @@ const LoginPage = () => {
 
   return (
     <Container justifyContent="center" alignItems="center">
-      <Flex>
-        <Box
-          width="500px"
-          padding={4}
-          marginTop={5}
-          borderColor="blackAlpha 50"
-          borderWidth="1px"
-          borderRadius={10}
-        >
-          <SimpleGrid padding={2}>
-            <form onSubmit={handleSubmit}>
-              <FormControl>
-                <FormLabel>Email address</FormLabel>
-                <Input ref={emailRef} type="email" name="email" />
-              </FormControl>
-              <FormControl>
-                <FormLabel>
-                  Password
-                  <ChakraLink
-                    as={ReachLink}
-                    to="/request/reset/password"
-                    color="blue.200"
-                    ml={2}
-                  >
-                    Forgot password?
-                  </ChakraLink>
-                </FormLabel>
-                <Input ref={passwordRef} type="password" name="password" />
-              </FormControl>
-              <Button type="submit" marginTop={5}>
-                Login
+  <Flex>
+    <Box
+      width="500px"
+      padding={4}
+      marginTop={5}
+      borderColor="blackAlpha 50"
+      borderWidth="1px"
+      borderRadius={10}
+    >
+      <SimpleGrid padding={2}>
+        <form onSubmit={handleSubmit}>
+          <FormControl>
+            <FormLabel>Email address</FormLabel>
+            <Input 
+              ref={emailRef} 
+              type="email" 
+              name="email" 
+              autoComplete="email"   // Added autoComplete attribute
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>
+              Password
+              <ChakraLink
+                as={ReachLink}
+                to="/request/reset/password"
+                color="blue.200"
+                ml={2}
+              >
+                Forgot password?
+              </ChakraLink>
+            </FormLabel>
+            <Input 
+              ref={passwordRef} 
+              type="password" 
+              name="password" 
+              autoComplete="current-password"  // Added autoComplete attribute
+            />
+          </FormControl>
+          <Button type="submit" marginTop={5}>
+            Login
+          </Button>
+          {error && (
+            <Alert status="error" marginTop={5}>
+              <AlertIcon />
+              <AlertTitle mr={2}>Error:</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <HStack mt={3}>
+            <Text>Don't have an account?</Text>
+            <ChakraLink as={ReachLink} to="/register" color="blue.200">
+              Please register.
+            </ChakraLink>
+          </HStack>
+          {isUserInactive && (
+            <>
+              <Text marginTop={5}>
+                Resend activation email for: {emailRef.current ? emailRef.current.value : ""} ?
+              </Text>
+              <Button onClick={handleResendActivationEmail} marginTop={5}>
+                Resend
               </Button>
-              {error && (
-                <Alert status="error" marginTop={5}>
-                  <AlertIcon />
-                  <AlertTitle mr={2}>Error:</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <HStack mt={3}>
-                <Text>Don't have an account?</Text>
-                <ChakraLink as={ReachLink} to="/register" color="blue.200">
-                  Please register.
-                </ChakraLink>
-              </HStack>
-              {isUserInactive && (
-                <>
-                  <Text marginTop={5}>
-                    Resend activation email for: {emailRef.current ? emailRef.current.value : ""} ?
-                  </Text>
-                  <Button onClick={handleResendActivationEmail} marginTop={5}>
-                    Resend
-                  </Button>
-                </>
-              )}
-            </form>
-          </SimpleGrid>
-        </Box>
-      </Flex>
-    </Container>
+            </>
+          )}
+        </form>
+      </SimpleGrid>
+    </Box>
+  </Flex>
+</Container>
+
   );
 };
 
