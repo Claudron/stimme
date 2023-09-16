@@ -51,12 +51,15 @@ const ChangePassword = () => {
       boxShadow="lg"
       marginBottom={5}
     >
-      <Heading as='h3' size='lg' marginBottom={5}>Change Password</Heading>
+      <Heading as="h3" size="lg" marginBottom={5}>
+        Change Password
+      </Heading>
       <form onSubmit={handleSubmit}>
         <FormControl>
           <FormLabel>
             Current Password:
             <Input
+              id="currentPasswordInput"
               ref={currentPasswordRef}
               type="password"
               name="currentPassword"
@@ -66,6 +69,7 @@ const ChangePassword = () => {
           <FormLabel>
             New Password:
             <Input
+              id="newPasswordInput"
               ref={newPasswordRef}
               type="password"
               name="newPassword"

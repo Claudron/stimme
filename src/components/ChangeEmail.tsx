@@ -47,12 +47,20 @@ const ChangeEmail = () => {
       boxShadow="lg"
       marginBottom={5}
     >
-      <Heading as='h3' size='lg' marginBottom={5}>Change Email</Heading>
+      <Heading as="h3" size="lg" marginBottom={5}>
+        Change Email
+      </Heading>
       <form onSubmit={handleSubmit}>
         <FormControl>
           <FormLabel>
             New Email:
-            <Input ref={emailRef} type="email" name="newEmail" required />
+            <Input
+              id="newEmailInput"
+              ref={emailRef}
+              type="email"
+              name="newEmail"
+              required
+            />
           </FormLabel>
           <Button type="submit">Change Email</Button>
         </FormControl>
