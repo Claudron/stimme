@@ -1,8 +1,6 @@
 import axios from "axios";
 import { performLogout } from "../hooks/useLogout";
 
-// const BASE_URL = '';
-
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 console.log(import.meta.env)
