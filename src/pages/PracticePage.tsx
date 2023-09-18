@@ -5,7 +5,7 @@ import Playlist from "../components/Playlist";
 import usePlaylistStore from "../store/useExerciseStore";
 import useSaveExercisePlaylist from "../hooks/useSaveExercisePlaylist";
 import useLoadExercisePlaylist from "../hooks/useLoadExercisePlaylist";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Playlist {
   playlist: File[];
@@ -17,15 +17,20 @@ const PracticePage = () => {
   const { data: loadedPlaylist } = useLoadExercisePlaylist();
   const toast = useToast();
 
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   useEffect(() => {
     if (loadedPlaylist) {
         usePlaylistStore.getState().loadPlaylist(loadedPlaylist.playlist);
+        setIsInitialLoad(false);
     }
   }, [loadedPlaylist]);
 
   useEffect(() => {
-    console.log("Playlist has changed:", playlist);
-    savePlaylistMutation.mutate({ playlist });
+    if (!isInitialLoad) {
+        console.log("Playlist has changed:", playlist);
+        savePlaylistMutation.mutate({ playlist });
+    }
   }, [playlist]);
 
   useEffect(() => {
