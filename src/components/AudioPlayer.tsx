@@ -6,6 +6,7 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  Switch,
   Text,
   HStack,
   VStack,
@@ -13,6 +14,8 @@ import {
   PopoverTrigger,
   PopoverContent,
   IconButton,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
 import { FiVolume2 } from "react-icons/fi";
 import useExerciseStore, { File } from "../store/useExerciseStore";
@@ -22,7 +25,16 @@ type AudioPlayerProps = {
 };
 
 const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
+  // Set BACKEND_URL based on the environment. In development, it uses VITE_BACKEND_URL from .env.development.
+  // In production, it's set to an empty string to use relative paths.
+  const BACKEND_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_BACKEND_URL
+      : "";
+
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [autoPlayEnabled, setAutoPlayEnabled] = useState<boolean>(false);
+
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -45,19 +57,40 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       if (isPlaying) {
         audio.pause();
       } else {
-        audio.play();
+        audio.play().catch((error) => {
+          console.error("Playback failed:", error);
+        });
       }
       setIsPlaying(!isPlaying);
     }
   };
+  
 
   const playNextTrack = () => {
     incrementTrackIndex();
+    // Start playing the next track automatically
+    if (audioRef.current) {
+      audioRef.current.play().catch((error) => {
+        console.error("Playback failed:", error);
+      });
+    }
   };
+  
 
   const playPreviousTrack = () => {
     decrementTrackIndex();
   };
+
+  const handleTrackEnded = () => {
+    if (currentTrackIndex === playlist.length - 1) {
+      setIsPlaying(false);  // Stop playback
+    } else if (autoPlayEnabled) {
+      playNextTrack();
+    } else {
+      playpauseTrack();
+    }
+  };
+  
 
   const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekPosition = duration * (Number(e.target.value) / 100);
@@ -77,16 +110,34 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       <HStack spacing={4}>
         <audio
           ref={audioRef}
-          src={playlist[currentTrackIndex]?.file}
+          src={`${BACKEND_URL}${playlist[currentTrackIndex]?.file}`}
+          // src={playlist[currentTrackIndex]?.file}
           onTimeUpdate={() => setCurrentTime(audioRef.current!.currentTime)}
           onLoadedMetadata={() => setDuration(audioRef.current!.duration)}
-          onEnded={playpauseTrack}
+          onEnded={handleTrackEnded}
+          onCanPlayThrough={() => {
+            if (autoPlayEnabled) {
+              audioRef.current?.play().catch((error) => {
+                console.error("Playback failed:", error);
+              });
+            }
+          }}
         />
-
         <Button onClick={playPreviousTrack}>Previous</Button>
         <Button onClick={playpauseTrack}>{isPlaying ? "Pause" : "Play"}</Button>
         <Button onClick={playNextTrack}>Next</Button>
+        <FormControl display="flex" alignItems="center">
+          <FormLabel htmlFor="autoplay-toggle" mb="0">
+            Autoplay
+          </FormLabel>
+          <Switch
+            id="autoplay-toggle"
+            isChecked={autoPlayEnabled}
+            onChange={(e) => setAutoPlayEnabled(e.target.checked)}
+          />
+        </FormControl>
       </HStack>
+
       <HStack>
         <Box width="300px">
           <Text>
@@ -95,6 +146,7 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
               .toString()
               .padStart(2, "0")}
           </Text>
+
           <Slider
             value={duration ? (currentTime / duration) * 100 : 0}
             onChange={(val: number) =>
@@ -108,6 +160,7 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
             </SliderTrack>
             <SliderThumb />
           </Slider>
+
           <Text>
             {Math.floor(duration / 60)}:
             {Math.floor(duration % 60)
