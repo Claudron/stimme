@@ -45,11 +45,13 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
 
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.src = `${BACKEND_URL}${playlist[currentTrackIndex]?.file}`;
+      audioRef.current.load(); // Explicitly load the new source
       console.log("Audio Source:", playlist[currentTrackIndex]?.file);
       audioRef.current.currentTime = 0;
       setCurrentTime(0);
     }
-  }, [currentTrackIndex, playlist]);
+  }, [currentTrackIndex, playlist, BACKEND_URL]);
 
   const playpauseTrack = () => {
     const audio = audioRef.current;
@@ -57,6 +59,7 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       if (isPlaying) {
         audio.pause();
       } else {
+        // We don't set the src here; it's set by the useEffect below
         audio.play().catch((error) => {
           console.error("Playback failed:", error);
         });
@@ -64,18 +67,21 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       setIsPlaying(!isPlaying);
     }
   };
-  
 
-  const playNextTrack = () => {
+  const playNextTrack = async () => {
     incrementTrackIndex();
-    // Start playing the next track automatically
+
+    // Only proceed if audioRef is set
     if (audioRef.current) {
-      audioRef.current.play().catch((error) => {
+      try {
+        await audioRef.current.pause(); // Ensure pause is complete
+        audioRef.current.currentTime = 0;
+        await audioRef.current.play(); // Ensure play is complete
+      } catch (error) {
         console.error("Playback failed:", error);
-      });
+      }
     }
   };
-  
 
   const playPreviousTrack = () => {
     decrementTrackIndex();
@@ -83,14 +89,13 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
 
   const handleTrackEnded = () => {
     if (currentTrackIndex === playlist.length - 1) {
-      setIsPlaying(false);  // Stop playback
+      setIsPlaying(false); // Stop playback
     } else if (autoPlayEnabled) {
       playNextTrack();
     } else {
       playpauseTrack();
     }
   };
-  
 
   const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekPosition = duration * (Number(e.target.value) / 100);
@@ -110,8 +115,6 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
       <HStack spacing={4}>
         <audio
           ref={audioRef}
-          src={`${BACKEND_URL}${playlist[currentTrackIndex]?.file}`}
-          // src={playlist[currentTrackIndex]?.file}
           onTimeUpdate={() => setCurrentTime(audioRef.current!.currentTime)}
           onLoadedMetadata={() => setDuration(audioRef.current!.duration)}
           onEnded={handleTrackEnded}
@@ -123,6 +126,7 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
             }
           }}
         />
+
         <Button onClick={playPreviousTrack}>Previous</Button>
         <Button onClick={playpauseTrack}>{isPlaying ? "Pause" : "Play"}</Button>
         <Button onClick={playNextTrack}>Next</Button>
