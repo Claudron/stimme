@@ -20,6 +20,9 @@ import {
 import { FiVolume2 } from "react-icons/fi";
 import useExerciseStore, { File } from "../store/useExerciseStore";
 
+import { getMethodFile } from "../services/getMethodFile";
+import { MethodFile } from "../entities/methodFile";
+
 type AudioPlayerProps = {
   playlist: File[];
 };
@@ -27,10 +30,10 @@ type AudioPlayerProps = {
 const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
   // Set BACKEND_URL based on the environment. In development, it uses VITE_BACKEND_URL from .env.development.
   // In production, it's set to an empty string to use relative paths.
-  const BACKEND_URL =
-    import.meta.env.MODE === "development"
-      ? import.meta.env.VITE_BACKEND_URL
-      : "";
+  // const BACKEND_URL =
+  //   import.meta.env.MODE === "development"
+  //     ? import.meta.env.VITE_BACKEND_URL
+  //     : "";
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState<boolean>(false);
@@ -43,15 +46,51 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
   const { currentTrackIndex, incrementTrackIndex, decrementTrackIndex } =
     useExerciseStore();
 
+  const [methodFile, setMethodFile] = useState<MethodFile | null>(null);
+
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.src = `${BACKEND_URL}${playlist[currentTrackIndex]?.file}`;
-      audioRef.current.load(); // Explicitly load the new source
-      console.log("Audio Source:", playlist[currentTrackIndex]?.file);
-      audioRef.current.currentTime = 0;
-      setCurrentTime(0);
+    let isCancelled = false;
+
+    const fetchMethodFile = async () => {
+      const fileId = playlist[currentTrackIndex]?.id;
+      if (fileId) {
+        // Ensure fileId is defined and valid
+        try {
+          const result = await getMethodFile(fileId);
+          if (!isCancelled) {
+            setMethodFile(result);
+          }
+        } catch (error) {
+          console.error("Error fetching method file:", error);
+        }
+      }
+    };
+
+    fetchMethodFile();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentTrackIndex, playlist]);
+
+  useEffect(() => {
+    const currentSignedURL = methodFile?.signed_url;
+    if (
+      audioRef.current &&
+      currentSignedURL &&
+      audioRef.current.src !== currentSignedURL
+    ) {
+      audioRef.current.src = currentSignedURL;
+      // Give a short delay after setting the src and then attempt to play
+      setTimeout(() => {
+        if (autoPlayEnabled) {
+          audioRef.current?.play().catch((error) => {
+            console.error("Playback failed:", error);
+          });
+        }
+      }, 100);
     }
-  }, [currentTrackIndex, playlist, BACKEND_URL]);
+  }, [methodFile, autoPlayEnabled]);
 
   const playpauseTrack = () => {
     const audio = audioRef.current;
@@ -68,18 +107,12 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
     }
   };
 
-  const playNextTrack = async () => {
+  const playNextTrack = () => {
     incrementTrackIndex();
-
-    // Only proceed if audioRef is set
     if (audioRef.current) {
-      try {
-        await audioRef.current.pause(); // Ensure pause is complete
-        audioRef.current.currentTime = 0;
-        await audioRef.current.play(); // Ensure play is complete
-      } catch (error) {
-        console.error("Playback failed:", error);
-      }
+      audioRef.current.currentTime = 0; // Reset the current time
+      // Don't attempt to play immediately after setting the new src
+      // Let's handle playback in the onCanPlayThrough event instead
     }
   };
 
@@ -119,8 +152,13 @@ const AudioPlayer = ({ playlist }: AudioPlayerProps) => {
           onLoadedMetadata={() => setDuration(audioRef.current!.duration)}
           onEnded={handleTrackEnded}
           onCanPlayThrough={() => {
-            if (autoPlayEnabled) {
-              audioRef.current?.play().catch((error) => {
+            // Check if autoplay is enabled and if the audio isn't already playing
+            if (
+              autoPlayEnabled &&
+              audioRef.current &&
+              !audioRef.current.paused
+            ) {
+              audioRef.current.play().catch((error) => {
                 console.error("Playback failed:", error);
               });
             }
