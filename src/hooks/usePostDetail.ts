@@ -6,7 +6,7 @@ const usePostDetail = (id: string) => useQuery<Post, Error>({
   queryKey:['posts', id],
   queryFn: () => 
     apiClient
-      .get<Post>(`/api/content/${id}`)
+      .get<Post>(`/content/detail/${id}`)
       .then(res => {
         console.log(res.data); // log the response to the console
         return res.data;

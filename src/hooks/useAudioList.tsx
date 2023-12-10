@@ -13,7 +13,7 @@ const useAudioList = () => useQuery<Audio[], Error>({
   queryKey:['audio list'],
   queryFn: () => 
     apiClient
-      .get<Audio[]>(`/api/content/audio`)
+      .get<Audio[]>(`/content/audio`)
       .then(res => {
         console.log(res.data); // log the response to the console
         return res.data;

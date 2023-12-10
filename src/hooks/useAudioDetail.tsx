@@ -12,7 +12,7 @@ const useAudioDetail = (id?: string) => useQuery<Audio, Error>({
   queryKey:['audio file', id],
   queryFn: () => 
     apiClient
-      .get<Audio>(`/api/content/audio/${id}`)
+      .get<Audio>(`/content/audio/${id}`)
       .then(res => {
         console.log(res.data); // log the response to the console
         return res.data;

@@ -17,7 +17,7 @@ const usePosts = () => {
     queryKey: ['posts', postQuery],
     queryFn: ({ pageParam = 1 }) => 
       apiClient
-        .get<FetchResponse<Post>>('/api/content/', {
+        .get<FetchResponse<Post>>('/content/list/', {
           params: {
             categories: postQuery.categoryId,
             ordering: postQuery.sortOrder,
